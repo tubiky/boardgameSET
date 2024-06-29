@@ -11,6 +11,7 @@ var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPL
 @onready var rectangle = RectangleShape2D.new()
 @onready var background_image = Sprite2D.new()
 @onready var card_image = Sprite2D.new()
+@onready var timer = Timer.new()
 
 @export_group("Card Values")
 @export_enum("Rhombus", "Oval", "Peanut") var figureShape: String = "Rhombus"
@@ -27,12 +28,12 @@ var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPL
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	background_image.material = ShaderMaterial.new()
-	var neon_border_shader = load("res://shaders/cardFrame.gdshader")
-	rectangle.size = Vector2(250, 320)
+	rectangle.size = Vector2(250, 350)
 	collisionShapeNode.shape = rectangle
 	background_image.texture = GameManager.card_background_image
 	card_image.texture = load("res://images/cardvalues/"+figureShape+"_"+figureShade+"_"+str(figureQuantity)+".png")
 	
+	add_child(timer)
 	add_child(background_image)
 	add_child(card_image)
 	add_child(area2Dnode)
@@ -42,16 +43,23 @@ func _ready():
 	area2Dnode.mouse_exited.connect(on_mouse_exited)
 	
 	selected.connect(GameManager.on_card_selected.bind(self))
-	 
-	
+
 	apply_shader_to_sprite(card_image)
 
 func emit_selected_signal():
+	toggle_is_selected()
 	selected.emit()
 
 
 func toggle_is_mouse_over():
 	is_mouse_over = !is_mouse_over
+	
+func toggle_is_selected():
+	is_selected = !is_selected
+	if collisionShapeNode.disabled != false:
+		collisionShapeNode.call_deferred("set_disabled", true)
+	else:
+		collisionShapeNode.call_deferred("set_disabled", false)
 
 func on_mouse_entered():
 	if is_mouse_over:
@@ -77,9 +85,17 @@ func _init(shape, hue, shade, quantity):
 
 
 func _process(_delta):
-	if self.is_mouse_over and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		GameManager.card_selected.emit(self)
-		self.queue_free()
+	pass
+	
+	
+func _input(event):
+	if event is InputEventMouseButton:
+		if self.is_mouse_over and event.pressed == true and is_selected == false:
+			print("CLick")
+			toggle_is_selected()
+			GameManager.card_selected.emit(self)
+			self.visible = false
+
 
 func apply_card_selected_to_background(sprite: Sprite2D):
 	var shader = Shader.new()
@@ -159,3 +175,4 @@ func apply_shader_to_sprite(sprite: Sprite2D):
 	var mt = ShaderMaterial.new()
 	mt.shader = shader
 	sprite.material = mt
+

@@ -1,9 +1,9 @@
 extends Node2D
 
-const WIDTH = 125
-const HEIGHT = 160
-const MARGIN = 20
-const GRIDS = 4
+const WIDTH = 250
+const HEIGHT = 350
+const HORIZONTAL_MARGIN = 40
+const VERTICAL_MARGIN = 50
 
 
 @onready var color_rect = $ColorRect
@@ -19,19 +19,20 @@ var deck = Array()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	GameManager.set_found.connect(on_set_found)
+	GameManager.set_not_found.connect(on_set_not_found)
 	
-	grid_container.columns = 5
 	for s in GameManager.shapeProperty:
 		for c in GameManager.colorProperty:
 			for t in GameManager.shadeProperty:
 				for q in GameManager.quantityProperty:
 					var card = Card.new(s, c, t, q)
-					card.scale = Vector2(0.5, 0.5)
+					card.scale = Vector2(1, 1)
 					deck.append(card)
 
 	shuffle()
 	
-	dealCards(4)
+	basic_game_setting()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta):
@@ -41,8 +42,8 @@ func _process(_delta):
 func shuffle():
 	deck.shuffle()
 	
-func dealCards(num: int):
-	set_card_position(GRIDS)
+func basic_game_setting():
+	set_card_position(4, 3)
 	
 	if GameManager.cards_on_board.size() <= 0:
 		for i in range(12):
@@ -53,20 +54,30 @@ func dealCards(num: int):
 			grid_container.add_child(card)
 
 
-func set_card_position(grid):
-	for r in grid:
-		for c in grid:
-			var card_position = Vector2(r * (WIDTH+MARGIN), c * (HEIGHT+MARGIN))
+func set_card_position(row_num: int, column_num: int):
+	for r in row_num: # 0, 1, 2, 3
+		for c in column_num: # 0, 1, 2
+			var card_position = Vector2(r * (WIDTH+HORIZONTAL_MARGIN), c * (HEIGHT+HORIZONTAL_MARGIN))
 			card_position_array.append(card_position)
-			
+
 
 
 func calculate_playing_card_size(card_deck: Array):
 	return card_deck.size()
 
 
-# Function that checks whether the open 12 cards have set or not
-# If there is no SET condition, then it should call deal card funtion to open a new card.
-func check_set_condition():
-	pass
+func on_set_found():
+	GameManager.selected_cards.clear()
+	print("Set Found")
 	
+	
+func on_set_not_found():
+	await on_set_not_found_deferred()
+	GameManager.selected_cards.clear()
+	print("Set Not Found")
+	
+func on_set_not_found_deferred():
+	for c in GameManager.selected_cards:
+		c.is_selected = false
+		c.visible = true
+
