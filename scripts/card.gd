@@ -2,24 +2,26 @@ extends Node2D
 
 class_name Card
 
+signal selected
 
 var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPLE]
 
-
-@onready var is_selected : bool = false
-@onready var is_under_mouse : bool = false
 @onready var area2Dnode = Area2D.new()
 @onready var collisionShapeNode = CollisionShape2D.new()
 @onready var rectangle = RectangleShape2D.new()
 @onready var background_image = Sprite2D.new()
 @onready var card_image = Sprite2D.new()
 
-
 @export_group("Card Values")
 @export_enum("Rhombus", "Oval", "Peanut") var figureShape: String = "Rhombus"
 @export_enum("Red", "Green", "Purple") var figureColor: String = "Purple"
 @export_enum("Full", "Slash", "Empty") var figureShade: String = "Full"
 @export_range(1, 3) var figureQuantity: int = 3
+
+@export_group("Card Status")
+@onready var is_selected : bool = false
+@onready var is_mouse_over : bool = false
+
 
 
 # Called when the node enters the scene tree for the first time.
@@ -38,25 +40,33 @@ func _ready():
 
 	area2Dnode.mouse_entered.connect(on_mouse_entered)
 	area2Dnode.mouse_exited.connect(on_mouse_exited)
+	
+	selected.connect(GameManager.on_card_selected.bind(self))
 	 
 	
 	apply_shader_to_sprite(card_image)
 
+func emit_selected_signal():
+	selected.emit()
+
+
+func toggle_is_mouse_over():
+	is_mouse_over = !is_mouse_over
 
 func on_mouse_entered():
-	self.is_under_mouse = true
-	if self.is_selected != false && Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		self.is_selected = !self.is_selected
-		print("Mouse Entered ", is_under_mouse)
-		#print(self.figureColor, self.figureQuantity, self.figureShade, self.figureShape)
-		#apply_card_selected_to_background(background_image)
-		GameManager.card_selected.emit()
+	if is_mouse_over:
+		return
+	else:
+		toggle_is_mouse_over()
+		apply_card_selected_to_background(background_image)
 	
 
 func on_mouse_exited():
-	self.is_under_mouse = false
-	print("Mouse exited ", is_under_mouse)
-	
+	if !is_mouse_over:
+		return
+	else:
+		toggle_is_mouse_over()
+		apply_card_selected_to_background(background_image)
 
 
 func _init(shape, hue, shade, quantity):
@@ -67,12 +77,14 @@ func _init(shape, hue, shade, quantity):
 
 
 func _process(_delta):
-	pass
+	if self.is_mouse_over and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		GameManager.card_selected.emit(self)
+		self.queue_free()
 
 func apply_card_selected_to_background(sprite: Sprite2D):
 	var shader = Shader.new()
 	
-	if self.is_selected == true:
+	if self.is_mouse_over == true:
 		shader.code = """
 		shader_type canvas_item;
 
