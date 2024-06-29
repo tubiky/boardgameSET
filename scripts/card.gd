@@ -2,12 +2,18 @@ extends Node2D
 
 class_name Card
 
+
+var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPLE]
+
+
+@onready var is_selected : bool = false
+@onready var is_under_mouse : bool = false
 @onready var area2Dnode = Area2D.new()
 @onready var collisionShapeNode = CollisionShape2D.new()
 @onready var rectangle = RectangleShape2D.new()
 @onready var background_image = Sprite2D.new()
 @onready var card_image = Sprite2D.new()
-var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPLE]
+
 
 @export_group("Card Values")
 @export_enum("Rhombus", "Oval", "Peanut") var figureShape: String = "Rhombus"
@@ -38,16 +44,19 @@ func _ready():
 
 
 func on_mouse_entered():
-	print("What!@?")
-	print(self.figureColor, self.figureQuantity, self.figureShade, self.figureShape)
-	var shader_material = background_image.material as ShaderMaterial
-	shader_material.set_shader_param("neon_color", Color(0.0, 0.0, 1.0, 1.0)) # Set neon blue color
+	self.is_under_mouse = true
+	if self.is_selected != false && Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		self.is_selected = !self.is_selected
+		print("Mouse Entered ", is_under_mouse)
+		#print(self.figureColor, self.figureQuantity, self.figureShade, self.figureShape)
+		#apply_card_selected_to_background(background_image)
+		GameManager.card_selected.emit()
 	
 
 func on_mouse_exited():
-	print("Mouse exited")
-	var shader_material = background_image.material as ShaderMaterial
-	shader_material.set_shader_param("neon_color", Color(1.0, 1.0, 1.0, 1.0)) # Reset to white or original color
+	self.is_under_mouse = false
+	print("Mouse exited ", is_under_mouse)
+	
 
 
 func _init(shape, hue, shade, quantity):
@@ -59,7 +68,39 @@ func _init(shape, hue, shade, quantity):
 
 func _process(_delta):
 	pass
+
+func apply_card_selected_to_background(sprite: Sprite2D):
+	var shader = Shader.new()
 	
+	if self.is_selected == true:
+		shader.code = """
+		shader_type canvas_item;
+
+		void fragment() {
+			vec4 tex_color = texture(TEXTURE, UV);
+			if (tex_color.rgb == vec3(1.0, 1.0, 1.0)) {
+				tex_color.rgb = vec3(0.6, 0.4, 0.8);  // MEDIUM_PURPLE
+			}
+			COLOR = tex_color;
+		}
+		"""
+		
+	else:
+		shader.code = """
+		shader_type canvas_item;
+
+		void fragment() {
+			vec4 tex_color = texture(TEXTURE, UV);
+			if (tex_color.rgb == vec3(0.0, 0.0, 0.0)) {
+				tex_color.rgb = vec3(0.55, 0.0, 0.0);  // FIREBRICK
+			}
+			COLOR = tex_color;
+		}
+		"""
+		
+	var mt = ShaderMaterial.new()
+	mt.shader = shader
+	sprite.material = mt
 
 
 func apply_shader_to_sprite(sprite: Sprite2D):

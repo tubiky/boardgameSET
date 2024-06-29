@@ -16,7 +16,6 @@ const GRIDS = 4
 
 
 var deck = Array()
-var playing_deck = Array()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -45,9 +44,10 @@ func shuffle():
 func dealCards(num: int):
 	set_card_position(GRIDS)
 	
-	if playing_deck.size() <= 0:
+	if GameManager.cards_on_board.size() <= 0:
 		for i in range(12):
-			var card = deck[i]
+			var card = deck.pop_front()
+			GameManager.cards_on_board.append(card)
 			
 			card.position = card_position_array[i]
 			grid_container.add_child(card)
