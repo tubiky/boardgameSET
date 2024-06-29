@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://ctu2pyj3jgdkl"]
+
+[ext_resource type="Script" path="res://scripts/card.gd" id="1_rwmen"]
+[ext_resource type="Texture2D" uid="uid://b3o8qpjtwlqsy" path="res://images/cardFrame.png" id="2_k368r"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g4ifg"]
+size = Vector2(250, 350)
+
+[node name="Card" type="Node2D"]
+position = Vector2(137, 180)
+script = ExtResource("1_rwmen")
+figureShape = "Rhombus"
+shade = "Full"
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("2_k368r")
+
+[node name="CardValues" type="Sprite2D" parent="."]
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_g4ifg")
