@@ -3,6 +3,7 @@ extends Node2D
 class_name Card
 
 signal selected
+signal unselected
 
 var color: Array[Color] = [Color.FIREBRICK, Color.DARK_GREEN, Color.MEDIUM_PURPLE]
 
@@ -43,6 +44,7 @@ func _ready():
 	area2Dnode.mouse_exited.connect(on_mouse_exited)
 	
 	selected.connect(GameManager.on_card_selected.bind(self))
+	unselected.connect(GameManager.on_card_unselected)
 
 	apply_shader_to_sprite(card_image)
 
@@ -51,6 +53,11 @@ func emit_selected_signal():
 	set_visible_false()
 	toggle_is_area_monitoring()
 	selected.emit()
+	
+func emit_unselected_signal():
+	toggle_is_selected()
+	set_visible_true()
+	toggle_is_area_monitoring()
 
 
 func toggle_is_mouse_over():
@@ -108,11 +115,12 @@ func _process(_delta):
 	
 func _input(event):
 	if event is InputEventMouseButton:
-		if self.is_mouse_over and event.pressed == true and is_selected == false:
-			print("CLick")
-			toggle_is_selected()
-			GameManager.card_selected.emit(self)
-			self.visible = false
+		if self.is_mouse_over and event.is_action_pressed("mouse_left_button") and is_selected == false:
+			print("Click")
+			emit_selected_signal()
+			
+		elif event.is_action_pressed("mouse_right_button") and GameManager.selected_cards.size() != 0:
+			unselected.emit()
 
 
 func apply_card_selected_to_background(sprite: Sprite2D):

@@ -30,8 +30,8 @@ var discarded_cards_positions = Array()
 
 func _ready():
 	card_selected.connect(on_card_selected)
+	card_unselected.connect(on_card_unselected)
 
-	
 	for s in GameManager.shapeProperty:
 		for c in GameManager.colorProperty:
 			for t in GameManager.shadeProperty:
@@ -53,10 +53,15 @@ func on_card_selected(card: Card):
 		selected_cards.append(card)
 		print("Card Selected: ", card.figureColor, " ", card.figureQuantity, " ", card.figureShade, " ", card.figureShape, card.position)
 		var cards_attributes = await extract_card_attributes(selected_cards)
-		await is_set(cards_attributes)
+		await is_set(cards_attributes)	
 
 
 func on_card_unselected():
+	var unselected_card = selected_cards.pop_back()
+	var grid_cont = get_node("/root/Main/ColorRect/MarginContainer/HBoxContainer/GridContainer")
+	grid_cont.add_child(unselected_card)
+	unselected_card.emit_unselected_signal()
+	
 	print("Card Unselected")
 	
 

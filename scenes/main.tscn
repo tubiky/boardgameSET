@@ -30,3 +30,5 @@ offset_right = 158.0
 offset_bottom = 71.0
 text = "Mouse Y Position:
 "
+
+[node name="GameUI" type="CanvasLayer" parent="."]

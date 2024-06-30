@@ -18,6 +18,9 @@ const VERTICAL_MARGIN = 12
 
 @onready var card_position_array = Array()
 
+@onready var game_ui = $GameUI
+
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
