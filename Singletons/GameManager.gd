@@ -14,14 +14,31 @@ var colorProperty = ["Green", "Red", "Purple"]
 var shadeProperty = ["Full", "Slash", "Empty"]
 var quantityProperty = [1, 2, 3]
 
+var deck = Array()
+
 # Cards that are shown to players
 var cards_on_board = Array()
 
 # 3 Cards that were chosen by a player
 var selected_cards = Array()
 
+# Collection of cards that made SET
+var discarded_cards = Array()
+
+# Collection of position info of cards that made SET
+var discarded_cards_positions = Array()
+
 func _ready():
 	card_selected.connect(on_card_selected)
+
+	
+	for s in GameManager.shapeProperty:
+		for c in GameManager.colorProperty:
+			for t in GameManager.shadeProperty:
+				for q in GameManager.quantityProperty:
+					var card = Card.new(s, c, t, q)
+					card.scale = Vector2(1, 1)
+					deck.append(card)
 	
 	
 func _process(_delta):
@@ -35,8 +52,8 @@ func on_card_selected(card: Card):
 	else:
 		selected_cards.append(card)
 		print("Card Selected: ", card.figureColor, " ", card.figureQuantity, " ", card.figureShade, " ", card.figureShape, card.position)
-		var cards_attributes = extract_card_attributes(selected_cards)
-		is_set(cards_attributes)
+		var cards_attributes = await extract_card_attributes(selected_cards)
+		await is_set(cards_attributes)
 
 
 func on_card_unselected():
@@ -72,12 +89,13 @@ func extract_card_attributes(three_cards: Array):
 
 func is_set(attributes: Array):
 	# card format: [number, shape, color, shading]
-	for i in range(3):
+	for i in range(4):
 		if (attributes[0][i] == attributes[1][i] && attributes[1][i] == attributes[2][i]) or (attributes[0][i] != attributes[1][i] && attributes[1][i] != attributes[2][i] && attributes[0][i] != attributes[2][i]):
 			pass  # Matching or all different in one attribute
 		else:
 			set_not_found.emit()
 			return  # Not a set
+	
 	set_found.emit()
 	return  # All attributes match or all are different
 	

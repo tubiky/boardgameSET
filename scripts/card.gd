@@ -48,6 +48,8 @@ func _ready():
 
 func emit_selected_signal():
 	toggle_is_selected()
+	set_visible_false()
+	toggle_is_area_monitoring()
 	selected.emit()
 
 
@@ -55,11 +57,27 @@ func toggle_is_mouse_over():
 	is_mouse_over = !is_mouse_over
 	
 func toggle_is_selected():
-	is_selected = !is_selected
-	if collisionShapeNode.disabled != false:
-		collisionShapeNode.call_deferred("set_disabled", true)
+	if !is_selected:
+		return
+	else: 
+		is_selected = !is_selected
+		
+
+func set_visible_true():
+	if visible:
+		return
 	else:
-		collisionShapeNode.call_deferred("set_disabled", false)
+		visible = true
+		
+func set_visible_false():
+	if !visible:
+		return
+	else:
+		visible = false
+
+
+func toggle_is_area_monitoring():
+	area2Dnode.monitoring = !area2Dnode.monitoring
 
 func on_mouse_entered():
 	if is_mouse_over:
